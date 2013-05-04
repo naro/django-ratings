@@ -3,7 +3,14 @@ from datetime import datetime
 from django.db import models
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.contenttypes import generic
-from django.contrib.auth.models import User
+
+# support for custom User models in Django 1.5+
+try:
+    from django.contrib.auth import get_user_model
+except ImportError:  # django < 1.5
+    from django.contrib.auth.models import User
+else:
+    User = get_user_model()
 
 try:
     from django.utils.timezone import now
@@ -55,7 +62,7 @@ class Score(models.Model):
     key             = models.CharField(max_length=32)
     score           = models.IntegerField()
     votes           = models.PositiveIntegerField()
-    
+
     content_object  = generic.GenericForeignKey()
 
     class Meta:
@@ -70,9 +77,9 @@ class SimilarUser(models.Model):
     agrees          = models.PositiveIntegerField(default=0)
     disagrees       = models.PositiveIntegerField(default=0)
     exclude         = models.BooleanField(default=False)
-    
+
     objects         = SimilarUserManager()
-    
+
     class Meta:
         unique_together = (('from_user', 'to_user'),)
 
@@ -83,11 +90,11 @@ class IgnoredObject(models.Model):
     user            = models.ForeignKey(User)
     content_type    = models.ForeignKey(ContentType)
     object_id       = models.PositiveIntegerField()
-    
+
     content_object  = generic.GenericForeignKey()
-    
+
     class Meta:
         unique_together = (('content_type', 'object_id'),)
-    
+
     def __unicode__(self):
         return self.content_object
